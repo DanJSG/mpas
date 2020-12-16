@@ -47,7 +47,7 @@ autoCorrelation(lags < 60 | lags > 300) = 0;
 % figure(1);
 % plot(lags, autoCorrelation);
 
-[autoCorrelationPeaks, autoCorrelationPeakLocs] = findpeaks(autoCorrelation, 'SortStr', 'descend', 'NPeaks', 3,  'MinPeakDistance', 20);
+[autoCorrelationPeaks, autoCorrelationPeakLocs] = findpeaks(autoCorrelation, 'SortStr', 'descend', 'NPeaks', 2,  'MinPeakDistance', 10);
 autoCorrelationPeakLocs = sort(autoCorrelationPeakLocs);
 
 % approxBpm = lags(autoCorrelationPeaklocations(1));
@@ -58,6 +58,8 @@ for n=1:length(autoCorrelationPeakLocs)
 end
 
 possibleBpms = sort(possibleBpms, 'descend');
+
+% disp(possibleBpms);
 
 differences = zeros(length(possibleBpms) - 1, 1);
 for n=1:length(possibleBpms) - 1
@@ -78,20 +80,21 @@ impulseSignal = zeros(length(spectralFlux), 1);
 samplesBetweenImpulses = floor((averageIoi * Fs) * (length(spectralFlux) / length(audio)));
 currentImpulseLocation = 1;
 
-timeSigNumerator = 4;
-
 while currentImpulseLocation < length(impulseSignal)
     impulseSignal(currentImpulseLocation) = 1;
     currentImpulseLocation = currentImpulseLocation + samplesBetweenImpulses;
 end
 
-plot(impulseSignal);
+% figure(1);
+% plot(impulseSignal);
+% plot(impulseSignal);
 
 [crossCorrelations, crossCorrelationLocs] = xcorr(spectralFlux, impulseSignal);
 
-
 crossCorrelations(crossCorrelationLocs < 0) = 0;
-[crossCorrelationPeaks, crossCorrelationPeakLocs] = findpeaks(crossCorrelations, 'SortStr', 'descend','MinPeakDistance', 20, 'Threshold', 150);
+[crossCorrelationPeaks, crossCorrelationPeakLocs] = ...
+    findpeaks(crossCorrelations, ...
+    'MinPeakDistance', 30, 'Threshold', 20);
 
 % crossCorrelationPeaks = sort(crossCorrelationPeaks);
 % crossCorrelationPeakLocs = sort(crossCorrelationPeakLocs);
@@ -101,13 +104,22 @@ for n=1:length(crossCorrelationPeakLocs)
     downbeatLocations(n) = crossCorrelationLocs(crossCorrelationPeakLocs(n));
 end
 
-for n=1:length(downbeatLocations) - 1
-   disp(downbeatLocations(n + 1) - downbeatLocations(n)); 
+% for n=1:length(downbeatLocations) - 1
+%    disp(downbeatLocations(n + 1) - downbeatLocations(n)); 
+% end
+
+figure(1)
+plot(spectralFlux);
+hold on;
+for n=1:length(downbeatLocations)
+    xline(downbeatLocations(n));
 end
+hold off;
 
 delta = floor((50e-3 * Fs) * (length(spectralFlux) / length(audio)));
 downbeatSamples = (downbeatLocations) * (length(audio) / length(spectralFlux));
 
+figure(2);
 plot(audio);
 hold on;
 for n=1:length(downbeatSamples)
@@ -115,10 +127,11 @@ for n=1:length(downbeatSamples)
 end
 hold off;
 
-% plot(crossCorrelationLocs, crossCorrelations);
-% hold on;
-% plot(crossCorrelationLocs(crossCorrelationPeakLocs), crossCorrelationPeaks, 'x');
-% hold off;
+figure(3);
+plot(crossCorrelationLocs, crossCorrelations);
+hold on;
+plot(crossCorrelationLocs(crossCorrelationPeakLocs), crossCorrelationPeaks, 'x');
+hold off;
 
 
 % actualTimeIndex = linspace(0, length(audio) / Fs, length(audio));
