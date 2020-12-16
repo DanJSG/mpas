@@ -1,20 +1,23 @@
-function[onsets, nOnsets] = extractaudioonsets(filepath, threshold)
+function[onsets, nOnsets, peaks] = extractaudioonsets(audio, Fs, threshold)
     
-    [audio, Fs] = audioread(filepath);
-    nChannels = length(audio(1, :));
-    
-    % If the file has more than 1 channel, convert to mono
-    if nChannels > 1
-       audio(:, 1) =  0.5 * (audio(:, 1) + audio(:, 2));
-       audio = audio(:, 1);
-    end
-    
+%     [audio, Fs] = audioread(filepath);
+%     nChannels = length(audio(1, :));
+%     
+%     % If the file has more than 1 channel, convert to mono
+%     if nChannels > 1
+%        audio(:, 1) =  0.5 * (audio(:, 1) + audio(:, 2));
+%        audio = audio(:, 1);
+%     end
+%     
+%     % Store the number of samples in the file
+%     nAudioSamples = length(audio);
+% 
+%     % Normalise the amplitude of the signal
+%     audio = normalize(audio, 'range', [-1, 1]);
+
     % Store the number of samples in the file
     nAudioSamples = length(audio);
-
-    % Normalise the amplitude of the signal
-    audio = normalize(audio, 'range', [-1, 1]);
-
+    
     % Create a window and set the overlap to be half the width of the window
     windowLength = 2048;
     window = hamming(windowLength);
@@ -86,12 +89,13 @@ function[onsets, nOnsets] = extractaudioonsets(filepath, threshold)
 
     % Loop through the onset ranges and find the max point within each range
     for n=1:nOnsetRanges
-        [peak, index] = max(audio(onsetRanges(n, 1):onsetRanges(n, 2)));
+        [peak, index] = findpeaks(audio(onsetRanges(n, 1):onsetRanges(n, 2)), 'SortStr', 'descend', 'NPeaks', 1);
         onsetSamples(n, 1) = index + onsetRanges(n, 1);
         onsetSamples(n, 2) = peak;
         nOnsets = nOnsets + 1;
     end
     
-    onsets = onsetSamples(1:nOnsets) ./ Fs;
+    peaks = onsetSamples(1:nOnsets, 2);
+    onsets = onsetSamples(1:nOnsets, 1) ./ Fs;
     
 end

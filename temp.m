@@ -108,7 +108,50 @@
 % onsets = onsetSamples(1:nOnsets) ./ Fs;
 % nOnsets = onsetCount;
 
-[onsets, nOnsets] = extractaudioonsets("pro_satie.mp3", 35);
+% [audio, Fs] = audioread();
+
+[audio, Fs] = audioread("pro_satie_intro.wav");
+nChannels = length(audio(1, :));
+
+% If the file has more than 1 channel, convert to mono
+if nChannels > 1
+   audio(:, 1) =  0.5 * (audio(:, 1) + audio(:, 2));
+   audio = audio(:, 1);
+end
+
+% Store the number of samples in the file
+nAudioSamples = length(audio);
+
+% Normalise the amplitude of the signal
+audio = normalize(audio, 'range', [-1, 1]);
+
+[onsets, nOnsets, peaks] = extractaudioonsets(audio, Fs, 40);
+
+% spectralPeaksSignal = spectralpeaks(audio, 1024);
+% firstOrderDifferential = gradient(spectralPeaksSignal(:)) ./ gradient(1:length(spectralPeaksSignal));
+% firstOrderDifferential = firstOrderDifferential(:, 1);
+% 
+% gaussianWindow = gausswin(8);
+% gaussianFiltered = filter(gaussianWindow, 1, firstOrderDifferential);
+% 
+% gaussianFiltered(gaussianFiltered < 0) = 0;
+% 
+% minTimeBetween = 40e-3;
+% minSamplesBetween = (minTimeBetween * Fs) / 1024;
+% 
+% [sePeaks, seLocations] = findpeaks(gaussianFiltered, 'MinPeakHeight', 10, 'MinPeakDistance', minSamplesBetween);
+% 
+% plot(spectralPeaksSignal);
+% hold on;
+% plot(gaussianFiltered);
+% plot(seLocations, sePeaks, 'x');
+% hold off;
+
+plot(audio);
+hold on;
+plot(onsets * Fs, peaks, 'x');
+hold off;
+
 
 % Initialise array for storing time differences between notes
 differences = zeros(nOnsets - 1, 1);
@@ -123,5 +166,15 @@ ibi = sum(differences) / length(differences);
 
 % Calculate the BPM from the inter-onset intervals
 bpm = 60 / ibi;
+
+% seLocations = seLocations .* (windowLength / 2);
+% seDifferences = zeros(length(sePeaks) - 1, 1);
+% for n=1:length(sePeaks) - 1
+%     seDifferences(n) = seLocations(n + 1) - seLocations(n);
+% end
+% 
+% seIbi = sum(seDifferences) / length(differences);
+% 
+% seBpm = 60 / seIbi;
 
 
