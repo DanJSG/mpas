@@ -76,32 +76,26 @@ averageIoi = 60 / approxBpm;
 
 nApproxCrotchets = (length(audio) / Fs) / averageIoi;
 
+impulseSignal = zeros(length(spectralFlux), 1);
 samplesBetweenImpulses = floor((averageIoi * Fs) * (length(spectralFlux) / length(audio)));
-impulseSignal = zeros((8 * samplesBetweenImpulses) - 1, 1);
-nCrossCorrelationSamples = length(impulseSignal);
-nSegments = ceil(length(spectralFlux) / nCrossCorrelationSamples);
-lastSegStart = nSegments * nCrossCorrelationSamples;
 currentImpulseLocation = 1;
-impulseCount = 0;
 
-while impulseCount < 8 && currentImpulseLocation < length(impulseSignal)
+
+while currentImpulseLocation < length(impulseSignal)
     impulseSignal(currentImpulseLocation) = 1;
     currentImpulseLocation = currentImpulseLocation + samplesBetweenImpulses;
-    impulseCount = impulseCount + 1;
 end
 
 figure(1);
 plot(impulseSignal);
 % plot(impulseSignal);
 
-%% Start segmentation loop here
-
-[crossCorrelations, crossCorrelationLocs] = xcorr(spectralFlux(nCrossCorrelationSamples:2 * nCrossCorrelationSamples), impulseSignal);
+[crossCorrelations, crossCorrelationLocs] = xcorr(spectralFlux, impulseSignal);
 
 crossCorrelations(crossCorrelationLocs < 0) = 0;
 [crossCorrelationPeaks, crossCorrelationPeakLocs] = ...
     findpeaks(crossCorrelations, ...
-    'MinPeakDistance', 30, 'SortStr', 'descend', 'NPeaks', 8);
+    'MinPeakDistance', 30, 'Threshold', 20);
 
 % crossCorrelationPeaks = sort(crossCorrelationPeaks);
 % crossCorrelationPeakLocs = sort(crossCorrelationPeakLocs);
@@ -110,11 +104,6 @@ downbeatLocations = zeros(length(crossCorrelationPeakLocs), 1);
 for n=1:length(crossCorrelationPeakLocs)
     downbeatLocations(n) = crossCorrelationLocs(crossCorrelationPeakLocs(n));
 end
-
-downbeatLocations = downbeatLocations + nCrossCorrelationSamples;
-
-%%
-
 
 % for n=1:length(downbeatLocations) - 1
 %    disp(downbeatLocations(n + 1) - downbeatLocations(n)); 
