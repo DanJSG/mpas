@@ -1,4 +1,4 @@
-[audio, Fs] = audioread("audio\pro_satie.mp3");
+[audio, Fs] = audioread("audio\102strict.wav");
 
 audio = monoconvert(audio);
 
@@ -8,39 +8,42 @@ nAudioSamples = length(audio);
 % Normalise the amplitude of the signal
 audio = normalize(audio, 'range', [-1, 1]);
 
-nFft = 2048;
-startBin = ceil(100 / ((Fs / 2) / (nFft / 2)));
-endBin = ceil(10e3 / ((Fs / 2) / (nFft / 2)));
+flux = spectralflux(audio, Fs, 512, 0, 2048);
 
-stft = spectrogram(audio, hamming(1024), 0, nFft);
-stft = abs(stft);
+% nFft = 2048;
+% startBin = ceil(100 / ((Fs / 2) / (nFft / 2)));
+% endBin = ceil(10e3 / ((Fs / 2) / (nFft / 2)));
+% 
+% stft = spectrogram(audio, hamming(1024), 0, nFft);
+% stft = abs(stft);
+% 
+% nBins = length(stft(1, :));
+% nFreqs = length(stft);
+% 
+% spectralFlux = zeros(nBins, 1);
+% prevSpectrum = stft(:, 1);
+% for n=2:nBins
+%     
+%     currentSpectrum = stft(:, n);
+%     
+%     currentFlux = 0;
+%     for m=startBin:endBin
+%         currentFlux = currentFlux + (sqrt(abs(currentSpectrum(m))) - sqrt(abs(prevSpectrum(m))));
+%     end
+%     
+%     spectralFlux(n - 1) = currentFlux;
+%     prevSpectrum = currentSpectrum;
+%     
+% end
 
-nBins = length(stft(1, :));
-nFreqs = length(stft);
+plot(flux);
 
-spectralFlux = zeros(nBins, 1);
-prevSpectrum = stft(:, 1);
-for n=2:nBins
-    
-    currentSpectrum = stft(:, n);
-    
-    currentFlux = 0;
-    for m=startBin:endBin
-        currentFlux = currentFlux + (sqrt(abs(currentSpectrum(m))) - sqrt(abs(prevSpectrum(m))));
-    end
-    
-    spectralFlux(n - 1) = currentFlux;
-    prevSpectrum = currentSpectrum;
-    
-end
+flux(flux < 0) = 0;
 
-plot(spectralFlux);
+doubleStretchedFlux = stretchAudio(flux, 2, 'Window', hann(256, 'periodic'));
+quadStretchedFlux = stretchAudio(flux, 4, 'Window', hann(256, 'periodic'));
 
-spectralFlux(spectralFlux < 0) = 0;
-doubleStretchedFlux = stretchAudio(spectralFlux, 2, 'Window', hann(256, 'periodic'));
-quadStretchedFlux = stretchAudio(spectralFlux, 4, 'Window', hann(256, 'periodic'));
-
-[globalAutoCorrelation, globalLags] = xcorr(spectralFlux);
+[globalAutoCorrelation, globalLags] = xcorr(flux);
 [globalAutoCorrelation2, globalLags2] = xcorr(doubleStretchedFlux);
 [globalAutoCorrelation3, globalLags3] = xcorr(quadStretchedFlux);
 
@@ -86,10 +89,10 @@ averageIoi = 60 / approxBpm;
 timeSigNumerator = 4;
 
 nApproxCrotchets = (length(audio) / Fs) / averageIoi;
-nSamplesBetweenCrotchets = floor((averageIoi * Fs) * (length(spectralFlux) / length(audio)));
+nSamplesBetweenCrotchets = floor((averageIoi * Fs) * (length(flux) / length(audio)));
 nSamplesInBar = timeSigNumerator * nSamplesBetweenCrotchets;
 nSamplesInSegment = nSamplesInBar * 2;
-nSegments = ceil(length(spectralFlux) / nSamplesInSegment);
+nSegments = ceil(length(flux) / nSamplesInSegment);
 
 
 halfBpm = approxBpm / 2;
@@ -102,14 +105,14 @@ for n=1:nSegments
     startSample = ((n - 1) * nSamplesInSegment) + 1;
     
     if n == nSegments
-        endSample = length(spectralFlux);
+        endSample = length(flux);
     else
         endSample = startSample + nSamplesInSegment;
     end
     
 %     disp(startSample + ":" + endSample);
     
-    [localAutoCorrelation, localLags] = xcorr(spectralFlux(startSample:endSample));
+    [localAutoCorrelation, localLags] = xcorr(flux(startSample:endSample));
     localAutoCorrelation(localLags < 50 | localLags > 300) = 0;
 
     [localAutoCorrelationPeaks, localAutoCorrelationPeakLocs] = findpeaks(localAutoCorrelation, 'SortStr', 'descend', 'NPeaks', 2);
