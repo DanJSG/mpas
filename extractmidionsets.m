@@ -15,6 +15,8 @@ function [onsets, nOnsets] = extractmidionsets(midiMatrix, midiBpm, timeSigNumer
    
     % Extract the MIDI note beat onsets
     midiNoteStarts = midiMatrix(:, 1);
+    
+    midiNoteStarts = midiNoteStarts - 1;
 
     % Number of notes in MIDI file
     noteCount = length(midiMatrix);

@@ -1,14 +1,14 @@
-midiMatrix = readmidi("./midi/102strict.mid");
+midiMatrix = readmidi("./midi/satie100.mid");
 [audio, Fs] = audioread("audio\pro_satie.mp3");
 
 % Convert to mono and normalize the signal
 audio = monoconvert(audio);
 audio = audio / max(abs(audio));
 
-mRecordingBpm = 102;
+mRecordingBpm = 100;
 timeSigNumerator = 4;
 
-[mBpm, mOnsets, ~] = getglobalmidibpm(midiMatrix, 102, timeSigNumerator);
+[mBpm, mOnsets, ~] = getglobalmidibpm(midiMatrix, mRecordingBpm, timeSigNumerator);
 
 mLocalBpms = getlocalmidibpms(mOnsets, mBpm, timeSigNumerator);
 
@@ -20,18 +20,37 @@ localDynamics = getlocaldynamics(rmsDynamics, length(audio), Fs, aGlobalBpm, tim
 
 dynamics = convertrmstolabels(localDynamics);
 
-crotchetLength = 60 / mBpm;
-barLength = crotchetLength * timeSigNumerator;
-segmentLength = barLength * 2;
+mVelocities = getlocalvelocities(midiMatrix, mOnsets, mBpm, timeSigNumerator);
 
-for n=1:segmentLength
-    
-    segmentStart = (n - 1) * segmentLength;
-    segmentEnd = segmentStart + segmentLength;
-    
-    midiMatrix(
-    
-end
+mDynamics = convertvelocitytolabels(mVelocities);
+
+% crotchetLength = 60 / mBpm;
+% barLength = crotchetLength * timeSigNumerator;
+% segmentLength = barLength * 2;
+% 
+% velocityOnsets = zeros(length(midiMatrix), 2);
+% velocityOnsets(:, 1) = midiMatrix(:, 1);
+% velocityOnsets(:, 2) = midiMatrix(:, 5);
+% velocityOnsets(:, 1) = (velocityOnsets(:, 1) - 1) .* crotchetLength;
+% 
+% lastOnset = velocityOnsets(end, 1);
+% nSegments = ceil(lastOnset / segmentLength);
+% 
+% localVelocities = zeros(nSegments, 1);
+% for n=1:nSegments
+%     
+%     segmentStart = (n - 1) * segmentLength;
+%     segmentEnd = segmentStart + segmentLength;
+%     
+%     segmentVelocityOnsets = velocityOnsets(velocityOnsets(:, 1) >= segmentStart & velocityOnsets(:, 1) < segmentEnd, :);
+%     
+%     meanVelocity = mean(segmentVelocityOnsets(:, 2));
+%     
+%     localVelocities(n) = meanVelocity;
+%    
+% end
+
+
 
 % disp(dynamics);
 
