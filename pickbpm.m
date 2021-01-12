@@ -1,29 +1,25 @@
-function[bpm] = pickbpm(bpms, minBpm, maxBpm)
+function[bpm] = pickbpm(bpms)
     
     if length(bpms) < 2
        bpm = bpms;
        return;
     end
     
-    disp("Calculating differences...");
+    averageBpm = mean(bpms);
+    medianBpm = median(bpms, 1);
     
-    differences = zeros(length(bpms) - 1, 1);
-    for n=1:length(bpms) - 1
-        differences(n) = bpms(n) - bpms(n + 1);
-    end
-
-    bpm = mean(differences);
+    doubleLowerBound = (2 * medianBpm) * 0.9;
+    doubleUpperBound = (2 * medianBpm) * 1.1;
     
-    if bpm == 0
-        return;
-    end
+    halfLowerBound = (0.5 * medianBpm) * 0.9;
+    halfUpperBound = (0.5 * medianBpm) * 1.1;
     
-    while bpm < minBpm
-        bpm = bpm * 2;
-    end
-    
-    while bpm > maxBpm
-        bpm = bpm / 2;
+    if averageBpm > doubleLowerBound && averageBpm < doubleUpperBound
+        bpm = averageBpm / 2;
+    elseif averageBpm > halfLowerBound && averageBpm < halfUpperBound
+        bpm = averageBpm * 2;
+    else
+        bpm = averageBpm;
     end
 
 end

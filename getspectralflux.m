@@ -1,4 +1,4 @@
-function[spectralFlux] = spectralflux(audio, Fs, windowLength, nOverlap, nFft)
+function[spectralFlux] = getspectralflux(audio, Fs, windowLength, nOverlap, nFft)
     
     startBin = ceil(100 / ((Fs / 2) / (nFft / 2)));
     endBin = ceil(10e3 / ((Fs / 2) / (nFft / 2)));

@@ -1,60 +1,92 @@
-% % Tempo of recorded MIDI file set (just for calculations)
-% midiFileTempo = 80;
-% 
-% % Length of crotchet beats based on MIDI file tempo
-% crotchetLength = 60 / midiFileTempo;
-% 
-% % MAYBE MAKE THIS TUNEABLE
-% % Perceptual lenience for capturing notes with roughly the same onset due
-% % to polyphony - currently 12ms
-% lenienceMs = 0.012; % 12ms
-% lenienceRatio = lenienceMs / crotchetLength;
-% 
-% % Read MIDI file using MIDI toolbox
-% midiMatrix = readmidi("satie_intro.mid");
-% 
-% % Extract the MIDI note beat onsets
-% midiNoteStarts = midiMatrix(:, 1);
-% 
-% % Number of notes in MIDI file
-% noteCount = length(midiMatrix);
-% 
-% % Initialise array of -1s for the number of notes in MIDI file
-% noteOnsets = -1 * ones(noteCount, 1);
-% 
-% currOnsetIndex = 1;
-% prevNoteOnset = -1;
-% 
-% % Loop over notes and if the onset time is different to the previous note
-% % then add it to the note onset variable
-% for n=1:noteCount
-%     noteOnset = midiNoteStarts(n);
-%     if noteOnset < prevNoteOnset - lenienceRatio || noteOnset > prevNoteOnset + lenienceRatio
-%         noteOnsets(currOnsetIndex) = noteOnset;
-%         currOnsetIndex = currOnsetIndex + 1;
-%     end
-%     prevNoteOnset = noteOnset;
-% end
-% 
-% % Trim any trailing -1s left in the array and subtract 1 to fix beat timing
-% noteOnsets = noteOnsets(1:currOnsetIndex - 1) - 1;
-% 
-% % Multiply note onsets by crotchet timing to get actual onset time
-% noteOnsets = noteOnsets .* crotchetLength;
-% 
-% % Number of note onsets
-% onsetCount = length(noteOnsets);
+midiMatrix = readmidi("./midi/102strict.mid");
+[audio, Fs] = audioread("audio\pro_satie.mp3");
 
-[onsets, nOnsets] = extractmidionsets("satie_intro.mid", 80);
+% Convert to mono and normalize the signal
+audio = monoconvert(audio);
+audio = audio / max(abs(audio));
 
-% Initialise matrix for calculating interbeat interval differences
-differences = zeros(nOnsets - 1, 1);
+mRecordingBpm = 102;
+timeSigNumerator = 4;
 
-% 
-for n=1:nOnsets - 1
-    differences(n) = onsets(n + 1) - onsets(n);
+[mBpm, mOnsets, ~] = getglobalmidibpm(midiMatrix, 102, timeSigNumerator);
+
+mLocalBpms = getlocalmidibpms(mOnsets, mBpm, timeSigNumerator);
+
+[aGlobalBpm, newLocalBpms] = getaudiobpms(audio, Fs, timeSigNumerator);
+
+rmsDynamics = getrmsdynamics(audio, Fs, 500e-3);
+
+localDynamics = getlocaldynamics(rmsDynamics, length(audio), Fs, aGlobalBpm, timeSigNumerator);
+
+dynamics = convertrmstolabels(localDynamics);
+
+crotchetLength = 60 / mBpm;
+barLength = crotchetLength * timeSigNumerator;
+segmentLength = barLength * 2;
+
+for n=1:segmentLength
+    
+    segmentStart = (n - 1) * segmentLength;
+    segmentEnd = segmentStart + segmentLength;
+    
+    midiMatrix(
+    
 end
 
-ibi = sum(differences) / length(differences);
-bpm = 60 / ibi;
+% disp(dynamics);
+
+% disp(localDynamics);
+
+% nSamplesBetweenCrotchets = floor((60 / aGlobalBpm) * Fs);
+% nSamplesInBar = timeSigNumerator * nSamplesBetweenCrotchets;
+% nSamplesInSegment = nSamplesInBar * 2;
+% nSegments = ceil(length(audio) / nSamplesInSegment);
+% 
+% localDynamics = zeros(nSegments, 1);
+% for n=1:nSegments
+%     
+%     startSample = (n - 1) * nSamplesInSegment + 1;
+%     endSample = startSample + nSamplesInSegment;
+%     
+%     if endSample > length(audio)
+%         endSample = length(audio);
+%     end
+%     
+%     startSample = floor(startSample * (length(rmsDynamics) / length(audio)));
+%     endSample = floor(endSample * (length(rmsDynamics) / length(audio)));
+%     
+%     if startSample == 0
+%         startSample = 1;
+%     end
+%     
+%     disp(startSample);
+%     disp(endSample);
+%     
+%     localDynamics(n) = mean(rmsDynamics(startSample:endSample));
+%     
+% end
+% 
+% disp(localDynamics);
+
+% disp("Global BPM of Audio:" + aGlobalBpm);
+% disp("Local BPMs of Audio:");
+% disp(aLocalBpms);
+% 
+% disp("Global BPM of MIDI: " + mBpm);
+% disp("Local BPMS of MIDI:");
+% disp(mLocalBpms);
+
+% figure(1);
+% tDomain1 = linspace(0, length(audio) / Fs, length(audio)); 
+% tDomain2 = linspace(0, length(audio) / Fs, length(rmsDynamics));
+% tDomain3 = linspace(0, length(audio) / Fs, length(localDynamics));
+% plot(tDomain1, audio, tDomain2, rmsDynamics, tDomain3, localDynamics);
+% 
+% figure(2);
+% tDomain1 = linspace(0, length(audio) / Fs, length(newLocalBpms));
+% % tDomain2 = linspace(0, length(audio) / Fs, length(aLocalBpms));
+% % plot(tDomain1, newLocalBpms, tDomain2, aLocalBpms);
+% plot(tDomain1, newLocalBpms);
+% ylim([60, 200]);
+
 

@@ -13,15 +13,17 @@ function[bpms] = autocorrelationbpm(signal, nBpms)
     if length(signal) > 256
         doubleStretchedAutoCorrelation = xcorr(doubleStretchedSignal);
         [quadStretchedAutoCorrelation, lags] = xcorr(quadStretchedSignal);
-        autoCorrelation = autoCorrelation((length(autoCorrelation) / 2) - (length(quadStretchedAutoCorrelation) / 2):((length(autoCorrelation) / 2) + (length(quadStretchedAutoCorrelation) / 2)) - 1 );
-        doubleStretchedAutoCorrelation = doubleStretchedAutoCorrelation( (length(doubleStretchedAutoCorrelation) / 2) - (length(quadStretchedAutoCorrelation) / 2):((length(doubleStretchedAutoCorrelation) / 2) + (length(quadStretchedAutoCorrelation) / 2)) - 1);
+        
+        autoCorrelation = autoCorrelation(1:length(quadStretchedAutoCorrelation));
+        doubleStretchedAutoCorrelation = doubleStretchedAutoCorrelation(1:length(quadStretchedAutoCorrelation));
+
     end 
     
     enhancedHarmonics = autoCorrelation + doubleStretchedAutoCorrelation + quadStretchedAutoCorrelation;
 
     enhancedHarmonics(lags < 60 | lags > 300) = 0;
-
-    [autoCorrelationPeaks, autoCorrelationPeakLocs] = findpeaks(enhancedHarmonics, 'SortStr', 'descend', 'NPeaks', nBpms,  'MinPeakDistance', 10);
+    
+    [autoCorrelationPeaks, autoCorrelationPeakLocs] = findpeaks(enhancedHarmonics, 'SortStr', 'descend', 'NPeaks', nBpms);
     
     bpms = zeros(nBpms, 1);
     for n=1:length(autoCorrelationPeaks)
