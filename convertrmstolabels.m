@@ -1,4 +1,4 @@
-function[dynamics] = convertrmstolabels(rmsDynamics)
+function[dynamics, dynamicLabelIndices] = convertrmstolabels(rmsDynamics)
     
     rmsDynamicRanges = [0.0549, 0.0718, 0.1026, 0.1524, 0.2184, 0.2997];
     dynamicLabels = ["pp", "p", "mp", "mf", "f", "ff"]';

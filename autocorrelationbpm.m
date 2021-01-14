@@ -1,5 +1,5 @@
 function[bpms] = autocorrelationbpm(signal, nBpms)
-    
+       
     if length(signal) > 256
         doubleStretchedSignal = stretchAudio(signal, 2, 'Window', hann(256, 'periodic'));
         quadStretchedSignal = stretchAudio(signal, 4, 'Window', hann(256, 'periodic'));
@@ -22,6 +22,10 @@ function[bpms] = autocorrelationbpm(signal, nBpms)
     enhancedHarmonics = autoCorrelation + doubleStretchedAutoCorrelation + quadStretchedAutoCorrelation;
 
     enhancedHarmonics(lags < 60 | lags > 300) = 0;
+    
+    if length(enhancedHarmonics) < 3
+        enhancedHarmonics(end + 1:end + 3) = 0;
+    end
     
     [autoCorrelationPeaks, autoCorrelationPeakLocs] = findpeaks(enhancedHarmonics, 'SortStr', 'descend', 'NPeaks', nBpms);
     

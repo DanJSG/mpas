@@ -7,11 +7,6 @@ function[bpms] = getlocalmidibpms(onsets, approxBpm, timeSigNumerator)
     lastOnset = onsets(end);
     nSegments = ceil(lastOnset / segmentLength);
     
-    disp("BPMs segments: " + nSegments);
-    disp("Segment length: " + segmentLength);
-    disp("Last onset: " + lastOnset);
-    disp("Length: " + nSegments * segmentLength);
-    
     bpms = zeros(nSegments, 1);
     for n=1:nSegments
 

@@ -9,14 +9,8 @@ function[velocities] = getlocalvelocities(midiMatrix, onsets, bpm, timeSigNumera
     velocityOnsets(:, 2) = midiMatrix(:, 5);
     velocityOnsets(:, 1) = (velocityOnsets(:, 1) - 1) .* crotchetLength;
     
-%     lastOnset = velocityOnsets(end, 1);
     lastOnset = onsets(end);
     nSegments = ceil(lastOnset / segmentLength);
-    
-    disp("Velocity segments: " + nSegments);
-    disp("Segment length: " + segmentLength);
-    disp("Last onset: " + lastOnset);
-    disp("Length: " + nSegments * segmentLength);
     
     velocities = zeros(nSegments, 1);
     for n=1:nSegments
@@ -27,9 +21,14 @@ function[velocities] = getlocalvelocities(midiMatrix, onsets, bpm, timeSigNumera
         segmentVelocityOnsets = velocityOnsets(velocityOnsets(:, 1) >= segmentStart & velocityOnsets(:, 1) < segmentEnd, :);
 
         meanVelocity = mean(segmentVelocityOnsets(:, 2));
-
+        
         velocities(n) = meanVelocity;
 
     end
+    
+    velocities = velocities(all(~isnan(velocities), 2), :);
+    
+%     disp("Extracted velocities: ");
+%     disp(velocities);
     
 end

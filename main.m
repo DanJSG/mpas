@@ -1,16 +1,26 @@
-midiMatrix = readmidi("./midi/satie100.mid");
-[audio, Fs] = audioread("audio\pro_satie.mp3");
+midiMatrix = readmidi("./audio/GymnopediesIntroPerformance.mid");
+[audio, Fs] = audioread("audio\GymnopediesIntroPerformance.wav");
 
 % Convert to mono and normalize the signal
 audio = monoconvert(audio);
 audio = audio / max(abs(audio));
+audio = cropsilence(audio, 0.002);
+
+midiWaveform = nmat2snd(midiMatrix, 'fm', Fs)';
+midiWaveform = midiWaveform / max(abs(midiWaveform));
+midiWaveform = cropsilence(midiWaveform, 0.002);
 
 mRecordingBpm = 100;
-timeSigNumerator = 4;
+timeSigNumerator = 3;
 
-[mBpm, mOnsets, ~] = getglobalmidibpm(midiMatrix, mRecordingBpm, timeSigNumerator);
+[~, mOnsets, ~] = getglobalmidibpm(midiMatrix, mRecordingBpm, timeSigNumerator);
 
-mLocalBpms = getlocalmidibpms(mOnsets, mBpm, timeSigNumerator);
+endPoint = length(midiWaveform) / Fs * (120 / mRecordingBpm);
+% disp("End point: " + endPoint);
+
+% mLocalBpms = getlocalmidibpms(mOnsets, mBpm, timeSigNumerator);
+
+[mBpm, mLocalBpms] = getaudiobpms(midiWaveform, Fs, timeSigNumerator);
 
 [aGlobalBpm, newLocalBpms] = getaudiobpms(audio, Fs, timeSigNumerator);
 
@@ -18,11 +28,50 @@ rmsDynamics = getrmsdynamics(audio, Fs, 500e-3);
 
 localDynamics = getlocaldynamics(rmsDynamics, length(audio), Fs, aGlobalBpm, timeSigNumerator);
 
-dynamics = convertrmstolabels(localDynamics);
+[dynamics, dynamicsIndices] = convertrmstolabels(localDynamics);
 
 mVelocities = getlocalvelocities(midiMatrix, mOnsets, mBpm, timeSigNumerator);
 
-mDynamics = convertvelocitytolabels(mVelocities);
+[~, mDynamicsIndices] = convertvelocitytolabels(mVelocities);
+
+dynamicsLabels = ["pp", "p", "mp", "mf", "f", "ff"];
+
+mLocalBpms = matchsegments(mLocalBpms, length(newLocalBpms), length(audio) / Fs);
+mDynamicsIndices = matchsegments(mDynamicsIndices, length(dynamicsIndices), length(audio) / Fs);
+mDynamics = dynamicsLabels(mDynamicsIndices)';
+
+startPoints = linspace(0, length(audio) / Fs, length(mLocalBpms));
+endPoints = startPoints(2:end);
+endPoints(end + 1) = startPoints(end) + (endPoints(2) - endPoints(1));
+timeRangeColumn = (startPoints + " - " + endPoints);
+
+% endPoints = startPoints + ((length(audio) / Fs) / length(mLocalBpms));
+
+length(1:length(mLocalBpms));
+
+tbl = table(1:length(mLocalBpms), timeRangeColumn);
+
+uitable('Data', timeRangeColumn);
+
+% uitable(tbl);
+
+% nSegments = length(newLocalBpms);
+% midiTimeDomain = linspace(0, length(audio) / Fs, length(mLocalBpms));
+% midiSegmentLength = midiTimeDomain(end) / nSegments;
+% 
+% fittedVals = zeros(nSegments, 1);
+% for n=1:nSegments
+%     midiRange = midiTimeDomain <= n * midiSegmentLength & midiTimeDomain >= (n - 1) * midiSegmentLength;
+%     indices = find(midiRange);
+%     value = mLocalBpms(indices);
+%     if length(value) > 1
+%         value = mean(value);
+%     end
+%     fittedVals(n) = value;
+% end
+
+disp(mLocalBpms);
+% disp(fittedVals);
 
 % crotchetLength = 60 / mBpm;
 % barLength = crotchetLength * timeSigNumerator;
@@ -49,8 +98,6 @@ mDynamics = convertvelocitytolabels(mVelocities);
 %     localVelocities(n) = meanVelocity;
 %    
 % end
-
-
 
 % disp(dynamics);
 

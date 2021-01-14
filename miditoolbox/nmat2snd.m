@@ -50,32 +50,32 @@ if nargin<3, fs = 22050; end
 if nargin<2, synthtype='fm'; end
 
 %%%%%%%%%%%%  WARNINGS
-sample_in_K = (fs*(1+nmat(end,6) + nmat(end,7)))/1024;
-
-if sample_in_K<1000
-	disp([num2str(sample_in_K,4) 'K samples']);
-elseif sample_in_K>1000
-    %TODO: this needs to be revised
-f=1;
-   while f==1
-	i = input([num2str(sample_in_K,4),'Ks of samples, synthesis may last for an extended period of time. \nDo you wish to continue? Y/N [Y]: '],'s');
-		if isempty(i)
-		    i = 'Y';
-		    f=2;
-		end
-	switch lower(i)
-	   case 'y'
-		    f=2;
-	   case 'n'
-		disp('synthesis cancelled')
-		y=[];	f=2; return
-	  otherwise
-	   	disp([i,' is not a valid choice'])
-		y=[];	
-		f=1;
-	end
-    end
-end	   
+% sample_in_K = (fs*(1+nmat(end,6) + nmat(end,7)))/1024;
+% 
+% if sample_in_K<1000
+% 	disp([num2str(sample_in_K,4) 'K samples']);
+% elseif sample_in_K>1000
+%     %TODO: this needs to be revised
+% f=1;
+%    while f==1
+% 	i = input([num2str(sample_in_K,4),'Ks of samples, synthesis may last for an extended period of time. \nDo you wish to continue? Y/N [Y]: '],'s');
+% 		if isempty(i)
+% 		    i = 'Y';
+% 		    f=2;
+% 		end
+% 	switch lower(i)
+% 	   case 'y'
+% 		    f=2;
+% 	   case 'n'
+% 		disp('synthesis cancelled')
+% 		y=[];	f=2; return
+% 	  otherwise
+% 	   	disp([i,' is not a valid choice'])
+% 		y=[];	
+% 		f=1;
+% 	end
+%     end
+% end	   
 
 % END WARNINGS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -156,7 +156,7 @@ end
 		Imaxmin = 5;	%modulation index (max value above Imin)
 
 		% envelopes
-		env=envelope([0 0 -1; 0.2 1 -1; 0.3 0.708 0; 0.8 .631 -1; 1 0 0],du,fs);
+		env=envelope([0 0 -1; 0.01 1 -1; 0.3 0.708 0; 0.8 .631 -1; 1 0 0],du,fs);
 
 		%disp(['env ' num2str(size(env)) 'tt ' num2str(size(tt))])
 		aa = note(3)*env; 

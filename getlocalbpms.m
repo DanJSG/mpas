@@ -12,9 +12,9 @@ function[bpms] = getlocalbpms(audio, Fs, approxBpm, timeSigNumerator)
         else
             endSample = startSample + nSamplesInSegment;
         end
-
+        
         audioSegment = audio(startSample:endSample);
-
+        
         segmentFlux = getspectralflux(audioSegment, Fs, 512, 0, 2048);
         segmentBpms = autocorrelationbpm(segmentFlux, 10);
         segmentBpm = pickbpm(segmentBpms);

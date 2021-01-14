@@ -1,4 +1,4 @@
-function[labels] = convertvelocitytolabels(velocities)
+function[labels, dynamicLabelIndices] = convertvelocitytolabels(velocities)
    
     velocityRanges = [36, 48, 64, 83, 97, 111];
     dynamicLabels = ["pp", "p", "mp", "mf", "f", "ff"]';
@@ -29,7 +29,7 @@ function[labels] = convertvelocitytolabels(velocities)
         dynamicLabelIndices(n) = dynamicLabelIndex;
         
     end
-    
+       
     labels = dynamicLabels(dynamicLabelIndices);
     
 end

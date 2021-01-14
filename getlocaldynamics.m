@@ -2,6 +2,8 @@ function[localMeanRms] = getlocaldynamics(rmsDynamics, nAudioSamples, Fs, global
    
     [nSegments, nSamplesInSegment] = segmentaudio(globalBpm, nAudioSamples, Fs, timeSigNumerator, 2);
     
+    disp("In getlocaldynamics: " + nSegments);
+    
     localMeanRms = zeros(nSegments, 1);
     for n=1:nSegments
 
