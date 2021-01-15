@@ -1,8 +1,12 @@
-function [onsets, nOnsets] = extractmidionsets(midiMatrix, midiBpm, timeSigNumerator)
 %EXTRACTMIDIONSETS Extract note onsets from a MIDI file.
-%   Extracts note onsets from a MIDI file and saves them into a 1 by N
-%   matrix. The onsets in this matrix are in seconds. This is returned,
-%   along with the number of onsets present in the file.
+% Extracts note onsets from a MIDI file and saves them into a 1 by N
+% matrix. The onsets in this matrix are in seconds. This is returned,
+% along with the number of onsets present in the file.
+% Input arguments:
+%   midiMatrix - the MIDI toolbox matrix of MIDI values from the clip
+%   midiBpm - the MIDI recording BPM
+%   timeSigNumerator - the number of beats in each bar
+function [onsets, nOnsets] = extractmidionsets(midiMatrix, midiBpm, timeSigNumerator)
     
     % Length of crotchet beats based on MIDI file tempo
     crotchetLength = (60 / midiBpm) * (timeSigNumerator / 4);
@@ -16,8 +20,6 @@ function [onsets, nOnsets] = extractmidionsets(midiMatrix, midiBpm, timeSigNumer
     % Extract the MIDI note beat onsets
     midiNoteStarts = midiMatrix(:, 1);
     
-%     midiNoteStarts = midiNoteStarts - 1;
-
     % Number of notes in MIDI file
     noteCount = length(midiMatrix);
 
