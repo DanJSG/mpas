@@ -5,6 +5,12 @@
 % to calculate the number of samples in each bar, and then finally the
 % number of bars in each segments determines the total number of segments
 % and the number of samples in each segment.
+% Input arguments:
+%   approxBpm - the approximate BPM to base the inter-onset-interval on
+%   nAudioSamples - the total number of samples in the audio
+%   Fs - the sampling frequency
+%   timeSigNumerator - the number of beats in each bar
+%   nBarsInSegment - the number of bars in each segment
 function[nSegments, nSamplesInSegment] = segmentaudio(approxBpm, nAudioSamples, Fs, timeSigNumerator, nBarsInSegment)
     
     % Calculate the average inter-onset-interval
