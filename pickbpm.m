@@ -1,4 +1,4 @@
-%PICKBPM Function to choose the BPM based on a selection of possible BPMs
+%PICKBPM Function to choose the BPM based on a selection of possible BPMs.
 % Takes a list of BPMs and then picks the one thought to be accurate. It
 % does this by calculating the mean BPM, then using the median BPM to
 % create upper and lower bounds for double the BPM and half the BPM. It

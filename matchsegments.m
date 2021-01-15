@@ -2,6 +2,10 @@
 %                points which last a certain duration.
 % Stretches or shrinks data with a set duration to have a different number
 % of sample points.
+% Input arguments:
+%   originalData - the original data to fit
+%   matchLength - the number of samples to fit the data
+%   duration - the duration of the data in seconds
 function[matchedValues] = matchsegments(originalData, matchLength, duration)
     
     % Setup the time domain
